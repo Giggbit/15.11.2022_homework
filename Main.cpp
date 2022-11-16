@@ -21,21 +21,25 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPTSTR lpszCmdLin
 
 DWORD WINAPI ThreadControlBar(LPVOID lp)
 {
+	DWORD pr = GetPriorityClass(GetCurrentProcess());
+	SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
+
 	HWND hProg = (HWND)lp;
 	while (TRUE)
 	{
 		SendMessage(hProg, PBM_SETPOS, rand() % 200+1, 0);
 		Sleep(250);
 	}
+	SetPriorityClass(GetCurrentProcess(), pr);
 	return 0;
 }
 
 DWORD WINAPI ThreadTime(LPVOID lp) {
-	/*HWND htime = HWND(lp);
-	while (TRUE) {
-		SendMessage(hTime, WM_SETTEXT, 0, LPARAM(str_time));
-	}
-	return 0;*/
+	DWORD pr = GetPriorityClass(GetCurrentProcess());
+	SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
+
 	HWND hProgress = (HWND)lp;
 	struct Time {
 		int Minutes = 2;
@@ -63,6 +67,7 @@ DWORD WINAPI ThreadTime(LPVOID lp) {
 		}
 		Sleep(1000);
 	}
+	SetPriorityClass(GetCurrentProcess(), pr);
 	return 0;
 }
 
@@ -80,14 +85,23 @@ BOOL CALLBACK DlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SendMessage(hProgress, PBM_SETPOS, 0, 0);
 		SendMessage(hProgress, PBM_SETBARCOLOR, 0, LPARAM(RGB(0, 214, 120)));
 
-		thread1 = CreateThread(NULL, 0, ThreadControlBar, hProgress, 0, NULL);
-		thread2 = CreateThread(NULL, 0, ThreadTime, hTime, 0, NULL);
+		//thread1 = CreateThread(NULL, 0, ThreadControlBar, hProgress, 0, NULL);
+		//thread2 = CreateThread(NULL, 0, ThreadTime, hTime, 0, NULL);
+
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 	}
 	break;
 
 	case WM_COMMAND: {
-		ResumeThread(thread1);
-		ResumeThread(thread2);
+		//ResumeThread(thread1);
+		//ResumeThread(thread2);
+
+		HANDLE hThread1 = CreateThread(NULL, 0, ThreadControlBar, hProgress, 0, NULL);
+		CloseHandle(hThread1);
+
+		HANDLE hThread2 = CreateThread(NULL, 0, ThreadTime, hTime, 0, NULL);
+		CloseHandle(hThread2);
 	}
 	break;
 
