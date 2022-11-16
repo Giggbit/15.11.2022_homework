@@ -8,7 +8,7 @@
 
 BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
 
-HANDLE thread1, thread2;
+//HANDLE hThread1, hThread2;
 HWND hTime, hProgress, hRadio1;
 TCHAR str_time[50];
 SYSTEMTIME st;
@@ -26,8 +26,7 @@ DWORD WINAPI ThreadControlBar(LPVOID lp)
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_IDLE);
 
 	HWND hProg = (HWND)lp;
-	while (TRUE)
-	{
+	while (TRUE) {
 		SendMessage(hProg, PBM_SETPOS, rand() % 200+1, 0);
 		Sleep(250);
 	}
@@ -96,12 +95,14 @@ BOOL CALLBACK DlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND: {
 		//ResumeThread(thread1);
 		//ResumeThread(thread2);
-
-		HANDLE hThread1 = CreateThread(NULL, 0, ThreadControlBar, hProgress, 0, NULL);
-		CloseHandle(hThread1);
-
-		HANDLE hThread2 = CreateThread(NULL, 0, ThreadTime, hTime, 0, NULL);
-		CloseHandle(hThread2);
+		if (IDC_BUTTON1 == LOWORD(wParam)) {
+			HANDLE hThread = CreateThread(NULL, 0, ThreadControlBar, hProgress, 0, NULL);
+			CloseHandle(hThread);
+		}
+		else if (IDC_BUTTON2 == LOWORD(wParam)) {
+			HANDLE hThread = CreateThread(NULL, 0, ThreadTime, hTime, 0, NULL);
+			CloseHandle(hThread);
+		}
 	}
 	break;
 
